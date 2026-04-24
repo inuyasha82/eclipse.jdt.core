@@ -92,7 +92,8 @@ public class TextEditsBuilder extends TokenTraverser {
 			if (start > sourceStart) {
 				Token token = this.tm.get(this.tm.findIndex(start, ANY, false));
 				if ((token.tokenType == TokenNameCOMMENT_BLOCK || token.tokenType == TokenNameCOMMENT_JAVADOC
-						|| token.tokenType == TokenNameCOMMENT_MARKDOWN) && start <= token.originalEnd) {
+						|| token.tokenType == TokenNameCOMMENT_MARKDOWN)
+						&& start <= token.originalEnd) {
 					start = token.originalStart;
 				}
 			}
@@ -100,7 +101,8 @@ public class TextEditsBuilder extends TokenTraverser {
 			if (end > start && end > sourceStart) {
 				Token token = this.tm.get(this.tm.findIndex(end, ANY, false));
 				if ((token.tokenType == TokenNameCOMMENT_BLOCK || token.tokenType == TokenNameCOMMENT_JAVADOC
-						|| token.tokenType == TokenNameCOMMENT_MARKDOWN) && end < token.originalEnd) {
+						|| token.tokenType == TokenNameCOMMENT_MARKDOWN )
+						&& end < token.originalEnd) {
 					end = token.originalEnd;
 				}
 			}
@@ -366,9 +368,9 @@ public class TextEditsBuilder extends TokenTraverser {
 			}
 			if (this.currentRegion == this.regions.size() - 1
 					|| this.regions.get(this.currentRegion + 1).getOffset() > currentPosition) {
-				this.edits.add(getReplaceEdit(this.counter, currentPosition, buffered, region));
 				if (this.currentRegion < this.regions.size())
-					checkClosingQuotes(currentPosition, this.regions.get(this.currentRegion));
+					checkTextBlockClosingQuotes(currentPosition, this.regions.get(this.currentRegion));
+				this.edits.add(getReplaceEdit(this.counter, currentPosition, buffered, region));
 				break;
 			}
 
@@ -390,16 +392,20 @@ public class TextEditsBuilder extends TokenTraverser {
 			this.counter = regionEnd;
 		}
 		if (sourceMatch && this.currentRegion < this.regions.size()) {
-			checkClosingQuotes(currentPosition, this.regions.get(this.currentRegion));
+			checkTextBlockClosingQuotes(currentPosition, this.regions.get(this.currentRegion));
 		}
 		this.buffer.setLength(0);
 		this.counter = currentPosition;
 	}
 
-	private void checkClosingQuotes(int position, IRegion region) {
+	private void checkTextBlockClosingQuotes(int position, IRegion region) {
 		Token token = this.getCurrent();
 		if (token == null) return;
 		String closingQuotes = "\"\"\""; //$NON-NLS-1$
+		// We need to check if we need to add the newline to the closing quotes when the option is enabled
+		// Since the buffer is flushed for the whole textblock first, and then for the internal structure,
+		// we want to make sure that this is not the whole textblock. Then we check that the current token
+		// string ends with the closing quotes.
 		if (this.options.put_text_block_quotes_on_new_line && !(token instanceof TokenTextBlock)
 				&& token.tokenType == TokenNameTextBlock
 				&& position < token.originalEnd
@@ -407,6 +413,7 @@ public class TextEditsBuilder extends TokenTraverser {
 			String stringToCheck = this.source.substring(position, token.originalEnd + 1);
 			int splitPlace = stringToCheck.indexOf(closingQuotes);
 			if (splitPlace > 0) {
+				// There is no new line because it is already present in the buffer field.
 				this.edits.add(getReplaceEdit(position + splitPlace, position + splitPlace,
 						'\\' + this.buffer.toString(), region));
 			}
