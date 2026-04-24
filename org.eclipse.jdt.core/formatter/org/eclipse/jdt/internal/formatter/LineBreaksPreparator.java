@@ -586,7 +586,7 @@ public class LineBreaksPreparator extends ASTVisitor {
 		Token newLine = new Token(block.originalStart, block.originalStart + 2, TokenNameNotAToken); // first line; """
 		lines.add(newLine); // first line; """
 		if (this.options.put_text_block_quotes_on_new_line) {
-				breakLineBefore(node);
+			breakLineBefore(node);
 		}
 		int blankLines = -1; // will go to 0 on line break after first line
 		int i = block.originalStart + 3;
@@ -619,15 +619,13 @@ public class LineBreaksPreparator extends ASTVisitor {
 			}
 		}
 		WrapPolicy wrapPolicy = new WrapPolicy(WrapMode.DISABLED, 0, -1, 0, 0, 1, false, false);
-		if(!this.options.put_text_block_quotes_on_new_line || ((TokenTextBlock)block).hasReplace()) {
-			for (i = 1; i < lines.size(); i++) {
-				Token t = lines.get(i);
-				Token line = new Token(t, t.originalStart + incidentalWhitespace, t.originalEnd, TokenNameTextBlock);
-				line.setWrapPolicy(wrapPolicy);
-				lines.set(i, line);
-			}
-			block.setInternalStructure(lines);
+		for (i = 1; i < lines.size(); i++) {
+			Token t = lines.get(i);
+			Token line = new Token(t, t.originalStart + incidentalWhitespace, t.originalEnd, TokenNameTextBlock);
+			line.setWrapPolicy(wrapPolicy);
+			lines.set(i, line);
 		}
+		block.setInternalStructure(lines);
 
 		if (this.options.put_text_block_quotes_on_new_line) {
 			breakLineAfter(node);

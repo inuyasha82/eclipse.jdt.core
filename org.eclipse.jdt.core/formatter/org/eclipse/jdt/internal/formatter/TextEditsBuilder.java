@@ -418,6 +418,7 @@ public class TextEditsBuilder extends TokenTraverser {
 				this.edits.add(getReplaceEdit(position + splitPlace, position + splitPlace,
 						'\\' + this.buffer.toString(), region));
 			}
+			return;
 		}
 	}
 
