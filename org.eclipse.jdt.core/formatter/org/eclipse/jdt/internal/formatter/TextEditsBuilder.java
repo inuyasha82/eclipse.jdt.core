@@ -322,7 +322,7 @@ public class TextEditsBuilder extends TokenTraverser {
 			currentPositionInLine = this.tm.getPositionInLine(index - 1);
 			currentPositionInLine += this.tm.getLength(this.tm.get(index - 1), currentPositionInLine);
 		}
-		if (currentPositionInLine >= align)
+			if (currentPositionInLine >= align)
 			return false;
 
 		final int tabSize = this.options.tab_size;
@@ -368,9 +368,9 @@ public class TextEditsBuilder extends TokenTraverser {
 			}
 			if (this.currentRegion == this.regions.size() - 1
 					|| this.regions.get(this.currentRegion + 1).getOffset() > currentPosition) {
+				this.edits.add(getReplaceEdit(this.counter, currentPosition, buffered, region));
 				if (this.currentRegion < this.regions.size())
 					checkTextBlockClosingQuotes(currentPosition, this.regions.get(this.currentRegion));
-				this.edits.add(getReplaceEdit(this.counter, currentPosition, buffered, region));
 				break;
 			}
 
@@ -401,6 +401,7 @@ public class TextEditsBuilder extends TokenTraverser {
 	private void checkTextBlockClosingQuotes(int position, IRegion region) {
 		Token token = this.getCurrent();
 		if (token == null) return;
+		if (position < region.getOffset() || position >= (region.getOffset() + region.getLength())) return;
 		String closingQuotes = "\"\"\""; //$NON-NLS-1$
 		// We need to check if we need to add the newline to the closing quotes when the option is enabled
 		// Since the buffer is flushed for the whole textblock first, and then for the internal structure,
