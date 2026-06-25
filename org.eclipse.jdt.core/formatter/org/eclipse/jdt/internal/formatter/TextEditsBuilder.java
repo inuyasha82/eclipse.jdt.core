@@ -122,7 +122,6 @@ public class TextEditsBuilder extends TokenTraverser {
 
 	@Override
 	protected boolean token(Token token, int index) {
-
 		bufferWhitespaceBefore(token, index);
 
 		List<Token> structure = token.getInternalStructure();
@@ -200,7 +199,8 @@ public class TextEditsBuilder extends TokenTraverser {
 		if (!(isTextBlock && emptyLine && !this.options.indent_empty_lines))
 			this.parent.bufferIndent(this.parent.tm.get(this.parentTokenIndex), this.parentTokenIndex);
 		this.counter = this.parent.counter;
-
+		// can be moved few lines up? since there is no point of executing line 196-201
+		// if isTextBlock is true.
 		if (isTextBlock)
 			return;
 		if (token != null && token.tokenType == TokenNameNotAToken)

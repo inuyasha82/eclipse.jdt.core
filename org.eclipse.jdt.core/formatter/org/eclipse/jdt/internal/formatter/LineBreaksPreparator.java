@@ -584,8 +584,11 @@ public class LineBreaksPreparator extends ASTVisitor {
 		ArrayList<Token> lines = new ArrayList<>();
 		Token newLine = new Token(block.originalStart, block.originalStart + 2, TokenNameNotAToken); // first line; """
 		lines.add(newLine); // first line; """
-		if (this.options.put_text_block_quotes_on_new_line) {
+		if (this.options.apply_format_to_text_block && this.options.put_text_block_quotes_on_new_line) {
 				breakLineBefore(node);
+		}
+		if (!this.options.apply_format_to_text_block) {
+			return true;
 		}
 		int blankLines = -1; // will go to 0 on line break after first line
 		int i = block.originalStart + 3;
@@ -625,7 +628,7 @@ public class LineBreaksPreparator extends ASTVisitor {
 			lines.set(i, line);
 			block.setInternalStructure(lines);
 		}
-		if (this.options.put_text_block_quotes_on_new_line) {
+		if (this.options.apply_format_to_text_block && this.options.put_text_block_quotes_on_new_line) {
 			if (block instanceof TokenTextBlock && !checkSemicolonTextBlock(block)) {
 				breakLineAfter(node);
 			}
