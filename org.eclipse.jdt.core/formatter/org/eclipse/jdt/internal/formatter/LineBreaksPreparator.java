@@ -212,8 +212,8 @@ public class LineBreaksPreparator extends ASTVisitor {
 	@Override
 	public boolean visit(RecordDeclaration node) {
 		handleAnnotations(node.modifiers(), this.options.insert_new_line_after_annotation_on_type);
-		/*handleBracedCode(node, node.getName(), this.options.brace_position_for_record_declaration,
-				this.options.indent_body_declarations_compare_to_record_header);*/
+		handleBracedCode(node, node.getName(), this.options.brace_position_for_record_declaration,
+				this.options.indent_body_declarations_compare_to_record_header);
 		handleBodyDeclarations(node.bodyDeclarations());
 		return true;
 	}
@@ -720,7 +720,10 @@ public class LineBreaksPreparator extends ASTVisitor {
 		Token openBraceToken = this.tm.get(openBraceIndex);
 		Token closeBraceToken = this.tm.get(closeBraceIndex);
 		handleBracePosition(openBraceToken, closeBraceIndex, bracePosition);
-
+		ASTNode relatedNode = NodeFinder.perform(node.getRoot(), openBraceToken.originalStart, openBraceToken.originalEnd - openBraceToken.originalStart);
+		if ( node instanceof RecordDeclaration && relatedNode instanceof ArrayInitializer) {
+			return;
+		}
 		putBlankLinesAfter(openBraceToken, blankLinesAfterOpeningBrace);
 		putBlankLinesBefore(closeBraceToken, blankLinesBeforeClosingBrace);
 
