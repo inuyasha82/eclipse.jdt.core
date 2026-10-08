@@ -754,8 +754,10 @@ public class WrapExecutor {
 	}
 
 	void setIndent(Token token, int indent) {
+		if(token.tokenType == TokenNameTextBlock && this.options.put_text_block_quotes_on_new_line) {
+			indent += this.options.indentation_size;
+		}
 		token.setIndent(indent);
-
 		List<Token> structure = token.getInternalStructure();
 		if (token.tokenType == TokenNameTextBlock && structure != null) {
 			int lineIndent;
@@ -765,11 +767,21 @@ public class WrapExecutor {
 			} else if (indentOption == Alignment.M_INDENT_DEFAULT) {
 				lineIndent = this.options.continuation_indentation * this.options.indentation_size;
 			} else if (indentOption == Alignment.M_INDENT_ON_COLUMN) {
-				lineIndent = this.tm.toIndent(this.tm.getPositionInLine(this.tm.indexOf(token)), true) - indent;
+				lineIndent = this.tm.toIndent(this.tm.getPositionInLine(this.tm.indexOf(token)), true);
 			} else {
 				lineIndent = 0;
 			}
-			structure.stream().skip(1).forEach(t -> t.setIndent(lineIndent));
+			int contentIndent = Math.max(lineIndent, this.options.indentation_size);
+			for(int i=1; i < structure.size()-1; i++) {
+				Token t = structure.get(i);
+				t.setIndent(this.options.indentation_size);
+			}
+			if(structure.size() > 0) {
+				Token fToken = structure.get(0);
+				Token lToken = structure.get(structure.size()-1);
+				fToken.setIndent(0);
+				lToken.setIndent(0);
+			}
 		}
 	}
 }
