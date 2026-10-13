@@ -634,11 +634,28 @@ public class LineBreaksPreparator extends ASTVisitor {
 				}
 			}
 			if (firstNonBlank != -1) {
-				Token line = new Token(lineStart, lastNonBlank, TokenNameNotAToken);
-				line.putLineBreaksBefore(blankLines + 1);
+				// We want to have the last token to contain only the closing quotes.
+				//boolean isClosingQuotes = this.tm.getSource().endsWith("\"\"\""); //$NON-NLS-1$;
+				boolean isLastLine = (lastNonBlank == block.originalEnd);
+				if(isLastLine && firstNonBlank < block.originalEnd -2) {
+					// I'll create two new tokens
+					Token lineText = new Token(lineStart, lastNonBlank - 3, TokenNameNotAToken);
+					lineText.putLineBreaksBefore(blankLines+1);
+					lines.add(lineText);
+					Token lineQuotes = new Token(lastNonBlank-2, lastNonBlank, TokenNameNotAToken);
+					lineQuotes.putLineBreaksBefore(1);
+					lines.add(lineQuotes);
+					incidentalWhitespace = Math.min(incidentalWhitespace, firstNonBlank - lineStart);
+				} else {
+                    Token line = new Token(lineStart, lastNonBlank, TokenNameNotAToken);
+                    line.putLineBreaksBefore(blankLines + 1);
+                    lines.add(line);
+
+                    if(!(isLastLine && (lastNonBlank - firstNonBlank + 1  == 3))) {
+                    	incidentalWhitespace = Math.min(incidentalWhitespace, firstNonBlank - lineStart);
+                    }
+				}
 				blankLines = 0;
-				lines.add(line);
-				incidentalWhitespace = Math.min(incidentalWhitespace, firstNonBlank - lineStart);
 			} else {
 				blankLines++;
 			}
@@ -646,10 +663,11 @@ public class LineBreaksPreparator extends ASTVisitor {
 		WrapPolicy wrapPolicy = new WrapPolicy(WrapMode.DISABLED, 0, -1, 0, 0, 1, false, false);
 		for (i = 1; i < lines.size(); i++) {
 			Token t = lines.get(i);
-			Token line = new Token(t, t.originalStart + incidentalWhitespace, t.originalEnd, TokenNameTextBlock);
+			int startPos = (i == lines.size()-1) ? (t.originalEnd - 2) : (t.originalStart + incidentalWhitespace);
+			Token line = new Token(t, startPos, t.originalEnd, TokenNameTextBlock);
 			line.setWrapPolicy(wrapPolicy);
 			lines.set(i, line);
-			block.setInternalStructure(lines);
+			block.setInternalStructure(lines); // Can we move it outside the loop?
 		}
 		if (this.options.put_text_block_quotes_on_new_line) {
 			if (block instanceof TokenTextBlock && !checkSemicolonTextBlock(block)) {
